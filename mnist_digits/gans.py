@@ -7,6 +7,9 @@ from torchvision import transforms
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
+import warnings
+
+warnings.filterwarnings("ignore")
 
 # Configurable variables
 NUM_EPOCHS = 100
