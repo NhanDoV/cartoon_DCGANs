@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import uuid
 
 # Configurable variables
-NUM_EPOCHS = 50
+NUM_EPOCHS = 100
 NOISE_DIMENSION = 50
 BATCH_SIZE = 128
 TRAIN_ON_GPU = True
