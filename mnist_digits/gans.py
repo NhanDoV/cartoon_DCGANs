@@ -186,7 +186,7 @@ def efficient_zero_grad(model):
         Apply zero_grad more efficiently
     """
     for param in model.parameters():
-    param.grad = None
+        param.grad = None
 
 def forward_and_backward(model, data, loss_function, targets):
     """
