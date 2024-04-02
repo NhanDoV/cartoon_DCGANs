@@ -46,25 +46,25 @@ class Generator(nn.Module):
     def __init__(self,):
         super().__init__()
         self.layers = nn.Sequential(
-          # First upsampling
-          nn.Linear(NOISE_DIMENSION, 128, bias=False),
-          nn.BatchNorm1d(128, 0.8),
-          nn.LeakyReLU(0.25),
-            
-          # Second upsampling
-          nn.Linear(128, 256, bias=False),
-          nn.BatchNorm1d(256, 0.8),
-          nn.LeakyReLU(0.25),
-            
-          # Third upsampling
-          nn.Linear(256, 512, bias=False),
-          nn.BatchNorm1d(512, 0.8),
-          nn.LeakyReLU(0.25),
-            
-          # Final upsampling
-          nn.Linear(512, GENERATOR_OUTPUT_IMAGE_SHAPE, bias=False),
-          nn.Tanh()
-        )
+                                  # First upsampling
+                                  nn.Linear(NOISE_DIMENSION, 128, bias=False),
+                                  nn.BatchNorm1d(128, 0.8),
+                                  nn.LeakyReLU(0.25),
+                                    
+                                  # Second upsampling
+                                  nn.Linear(128, 256, bias=False),
+                                  nn.BatchNorm1d(256, 0.8),
+                                  nn.LeakyReLU(0.25),
+                                    
+                                  # Third upsampling
+                                  nn.Linear(256, 512, bias=False),
+                                  nn.BatchNorm1d(512, 0.8),
+                                  nn.LeakyReLU(0.25),
+                                    
+                                  # Final upsampling
+                                  nn.Linear(512, GENERATOR_OUTPUT_IMAGE_SHAPE, bias=False),
+                                  nn.Tanh()
+                                )
 
     def forward(self, x):
         """Forward pass"""
@@ -77,33 +77,39 @@ class Discriminator(nn.Module):
     def __init__(self):
         super().__init__()
         self.layers = nn.Sequential(
-          nn.Linear(GENERATOR_OUTPUT_IMAGE_SHAPE, 1024), 
-          nn.LeakyReLU(0.25),
-          nn.Linear(1024, 512), 
-          nn.LeakyReLU(0.25),
-          nn.Linear(512, 256), 
-          nn.LeakyReLU(0.25),
-          nn.Linear(256, 1),
-          nn.Sigmoid()
-        )
+                                      nn.Linear(GENERATOR_OUTPUT_IMAGE_SHAPE, 1024), 
+                                      nn.LeakyReLU(0.25),
+                                      nn.Linear(1024, 512), 
+                                      nn.LeakyReLU(0.25),
+                                      nn.Linear(512, 256), 
+                                      nn.LeakyReLU(0.25),
+                                      nn.Linear(256, 1),
+                                      nn.Sigmoid()
+                                    )
 
     def forward(self, x):
         """Forward pass"""
         return self.layers(x)
 
 def get_device():
-    """ Retrieve device based on settings and availability. """
+    """ 
+        Retrieve device based on settings and availability. 
+    """
     return torch.device("cuda:0" if torch.cuda.is_available() and TRAIN_ON_GPU else "cpu")    
     
 def make_directory_for_run():
-    """ Make a directory for this training run. """
+    """ 
+        Make a directory for this training run. 
+    """
     print(f'Preparing training run {UNIQUE_RUN_ID}')
     if not os.path.exists('./runs'):
         os.mkdir('./runs')
     os.mkdir(f'./runs/{UNIQUE_RUN_ID}')
 
 def generate_image(generator, epoch = 0, batch = 0, device=get_device()):
-    """ Generate subplots with generated examples. """
+    """ 
+        Generate subplots with generated examples. 
+    """
     images = []
     noise = generate_noise(BATCH_SIZE, device=device)
     generator.eval()
@@ -124,19 +130,23 @@ def generate_image(generator, epoch = 0, batch = 0, device=get_device()):
     plt.savefig(f'./runs/{UNIQUE_RUN_ID}/images/epoch{epoch}_batch{batch}.jpg')
 
 def save_models(generator, discriminator, epoch):
-    """ Save models at specific point in time. """
+    """ 
+        Save models at specific point in time. 
+    """
     torch.save(generator.state_dict(), f'./runs/{UNIQUE_RUN_ID}/generator_{epoch}.pth')
     torch.save(discriminator.state_dict(), f'./runs/{UNIQUE_RUN_ID}/discriminator_{epoch}.pth')
 
 def print_training_progress(batch, generator_loss, discriminator_loss):
-    """ Print training progress. """
+    """ 
+        Print training progress. 
+    """
     print('Losses after mini-batch %5d: generator %e, discriminator %e' %
-        (batch, generator_loss, discriminator_loss))
+            (batch, generator_loss, discriminator_loss))
 
 def prepare_dataset():
     """ 
         Prepare dataset through DataLoader
-        Trong trường hợp này
+        Trong trường hợp này ta sẽ download MNIST data rồi transform nó thành dạng chuẩn hóa và lưu dưới dạng các Tensor
     """
     # Prepare MNIST dataset: chỉ định nơi để download + transform dữ liệu
     dataset = MNIST(os.getcwd(), download=True, train=True, 
@@ -145,14 +155,16 @@ def prepare_dataset():
                                                     transforms.Normalize((0.5,), (0.5,))
                                                     ]))
     # Batch and shuffle data with DataLoader
-    trainloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, 
-                                              num_workers=4, pin_memory=True)
+    trainloader = torch.utils.data.DataLoader(dataset, batch_size = BATCH_SIZE, shuffle = True, 
+                                              num_workers = 4, pin_memory = True)
     # Return dataset through DataLoader
     return trainloader
 
 
 def initialize_models(device = get_device()):
-    """ Initialize Generator and Discriminator models """
+    """ 
+        Initialize Generator and Discriminator models 
+    """
     generator = Generator()
     discriminator = Discriminator()
     # Move models to specific device
@@ -163,22 +175,28 @@ def initialize_models(device = get_device()):
 
 
 def initialize_loss():
-    """ Initialize loss function. """
+    """ 
+        Initialize loss function. 
+    """
     return nn.BCELoss()
 
 def initialize_optimizers(generator, discriminator):
-    """ Initialize optimizers for Generator and Discriminator. """
+    """ 
+        Initialize optimizers for Generator and Discriminator. 
+    """
     generator_optimizer = torch.optim.AdamW(generator.parameters(), 
-                                            lr=OPTIMIZER_LR,
-                                            betas=OPTIMIZER_BETAS)
+                                            lr = OPTIMIZER_LR,
+                                            betas = OPTIMIZER_BETAS)
     discriminator_optimizer = torch.optim.AdamW(discriminator.parameters(), 
-                                                lr=OPTIMIZER_LR,
-                                                betas=OPTIMIZER_BETAS)
+                                                lr = OPTIMIZER_LR,
+                                                betas = OPTIMIZER_BETAS)
     return generator_optimizer, discriminator_optimizer  
 
-def generate_noise(number_of_images = 1, noise_dimension = NOISE_DIMENSION, device=None):
-    """ Generate noise for number_of_images images, with a specific noise_dimension """
-    return torch.randn(number_of_images, noise_dimension, device=device)
+def generate_noise(number_of_images = 1, noise_dimension = NOISE_DIMENSION, device = None):
+    """ 
+        Generate noise for number_of_images images, with a specific noise_dimension 
+    """
+    return torch.randn(number_of_images, noise_dimension, device = device)
 
 
 def efficient_zero_grad(model):
@@ -218,13 +236,13 @@ def perform_train_step(generator, discriminator, real_data, \
     # Forward + backward on real images, reshaped
     real_images = real_images.view(real_images.size(0), -1)
     error_real_images = forward_and_backward(discriminator, real_images, \
-    loss_function, label)
+                                             loss_function, label)
     # Forward + backward on generated images
     noise = generate_noise(actual_batch_size, device=device)
     generated_images = generator(noise)
     label.fill_(fake_label)
     error_generated_images =forward_and_backward(discriminator, \
-    generated_images.detach(), loss_function, label)
+                                                 generated_images.detach(), loss_function, label)
     # Optim for discriminator
     discriminator_optimizer.step()
   
@@ -232,7 +250,8 @@ def perform_train_step(generator, discriminator, real_data, \
     # Forward + backward + optim for generator, including zero grad
     efficient_zero_grad(generator)
     label.fill_(real_label)
-    error_generator = forward_and_backward(discriminator, generated_images, loss_function, label)
+    error_generator = forward_and_backward(discriminator, generated_images,\
+                                           loss_function, label)
     generator_optimizer.step()
 
     # 4. COMPUTING RESULTS
@@ -242,8 +261,10 @@ def perform_train_step(generator, discriminator, real_data, \
     return error_generator, error_discriminator  
 
 def perform_epoch(dataloader, generator, discriminator, loss_function, \
-    generator_optimizer, discriminator_optimizer, epoch):
-    """ Perform a single epoch. """
+                  generator_optimizer, discriminator_optimizer, epoch):
+    """ 
+        Perform a single epoch. 
+    """
     
     for batch_no, real_data in enumerate(dataloader, 0):
         # Perform training step
@@ -262,7 +283,7 @@ def perform_epoch(dataloader, generator, discriminator, loss_function, \
     # Clear memory after every epoch
     torch.cuda.empty_cache()  
 
-def train_dcgan():
+def train_DCGAN():
     """ Train the DCGAN. """
     # Make directory for unique run
     make_directory_for_run()
@@ -284,4 +305,4 @@ def train_dcgan():
     print(f'Finished unique run {UNIQUE_RUN_ID}')
 
 if __name__ == '__main__':
-    train_dcgan()
+    train_DCGAN()
